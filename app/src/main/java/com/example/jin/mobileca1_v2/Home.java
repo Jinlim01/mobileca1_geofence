@@ -10,6 +10,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -101,6 +102,23 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
 //            }
 //        });
 //
+
+
+        FloatingActionButton floatingButton_one = findViewById(R.id.clock_in);
+        FloatingActionButton floatingButton_two = findViewById(R.id.clock_out);
+
+        floatingButton_one.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                addClockInToDatabase();
+            }
+        });
+        floatingButton_two.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                addClockOutToDatabase();
+            }
+        });
 
     }
     @Override
@@ -340,4 +358,5 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
             }
         });
     }
+
 }
