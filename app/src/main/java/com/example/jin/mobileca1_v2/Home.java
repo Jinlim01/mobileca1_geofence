@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -66,6 +67,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
     private static final long MIN_TIME = 400;
     private static final float MIN_DISTANCE = 1000;
     private LatLng latlng;
+    private boolean clockIn = false;
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -73,6 +75,8 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
     private Button mClockOutBtn;
 
     private FirebaseUser user;
+    private double radius;
+    ArrayList<LatLng> center = new ArrayList<>();
 
     private HashMap<String,LatLng> sitenames;
 
@@ -102,25 +106,8 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
 //            }
 //        });
 //
-
-
-        FloatingActionButton floatingButton_one = findViewById(R.id.clock_in);
-        FloatingActionButton floatingButton_two = findViewById(R.id.clock_out);
-
-        floatingButton_one.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                addClockInToDatabase();
-            }
-        });
-        floatingButton_two.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                addClockOutToDatabase();
-            }
-        });
-
     }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         if (googleMap != null) {
@@ -157,6 +144,51 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
             locationManager.removeUpdates(this);
             generateGeofence();
             addGeofence();
+//
+//            new Handler().postDelayed(new Runnable() {
+//
+//                @Override
+//                public void run() {
+                    FloatingActionButton floatingButton_one = findViewById(R.id.clock_in);
+                    FloatingActionButton floatingButton_two = findViewById(R.id.clock_out);
+                    float[] distance = new float[2];
+
+                    Location locationA = new Location("Current Location");
+                    locationA.setLatitude(latlng.latitude);
+                    locationA.setLongitude(latlng.longitude);
+                    //locationA.setLatitude(53.98488);
+                    //locationA.setLongitude(-6.3961837);
+                    //locationA.setLatitude(55.98488);
+                    //locationA.setLongitude(-6.3961837);
+
+                    for(int i = 0 ; i < center.size();i++){
+                        Location locationB = new Location("point B");
+                        locationB.setLatitude(center.get(i).latitude);
+                        locationB.setLongitude(center.get(i).longitude);
+
+                        Location.distanceBetween(locationA.getLatitude(),locationA.getLongitude(),locationB.getLatitude(),locationB.getLongitude(),distance);
+
+                        if(distance[0] > radius){
+                            floatingButton_one.setEnabled(false);
+                            floatingButton_two.setEnabled(false);
+                        }else{
+                            i = center.size() + 1;
+                        }
+                    }
+
+                    floatingButton_one.setOnClickListener(new View.OnClickListener(){
+                        @Override
+                        public void onClick(View v) {
+                            addClockInToDatabase();
+                        }
+                    });
+                    floatingButton_two.setOnClickListener(new View.OnClickListener(){
+                        @Override
+                        public void onClick(View v) {
+                            addClockOutToDatabase();
+                        }
+                    });
+//                }}, 2000);
         }
     }
 
@@ -225,6 +257,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
         }
         Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
         return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
     }
 
     private void removeGeofence() {
@@ -244,10 +277,12 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
             googleMap.addMarker(markerOptions);
             CircleOptions circleOptions = new CircleOptions();
             circleOptions.center(new LatLng(entry.getValue().latitude,entry.getValue().longitude));
+            center.add(new LatLng(entry.getValue().latitude,entry.getValue().longitude));
             circleOptions.radius(GEOFENCE_RADIUS_IN_METERS);
             circleOptions.fillColor(0x50666b75);
             circleOptions.strokeColor(0x50666b75);
             googleMap.addCircle(circleOptions);
+            radius = circleOptions.getRadius();
         }
 
 
@@ -325,6 +360,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
+
     }
 
     public static String getCurrentTimeUsingDate() {
