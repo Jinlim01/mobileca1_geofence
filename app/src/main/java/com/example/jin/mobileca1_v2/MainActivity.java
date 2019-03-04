@@ -34,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         mLoginBtn = (Button) findViewById(R.id.btn_login);
         mRegisterDirBtn = (Button) findViewById(R.id.login_register);
         mLoginEmailEditText = (EditText) findViewById(R.id.loginEmail);
