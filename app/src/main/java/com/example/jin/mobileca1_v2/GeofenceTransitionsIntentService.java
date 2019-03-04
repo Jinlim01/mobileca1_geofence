@@ -1,7 +1,15 @@
 package com.example.jin.mobileca1_v2;
 
 import android.app.IntentService;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.os.HardwarePropertiesManager;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -30,4 +38,6 @@ public class GeofenceTransitionsIntentService extends IntentService {
         }
 
     }
+
+
 }
