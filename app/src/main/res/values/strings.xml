@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">mobileca1_v2</string>
+    <string name="app_name">Clock Site</string>
     <string name="re_type_password">Re-type Password</string>
     <string name="password">Password</string>
     <string name="e_mail">Email</string>
