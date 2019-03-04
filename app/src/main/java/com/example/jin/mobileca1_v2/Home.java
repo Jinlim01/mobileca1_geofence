@@ -56,7 +56,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
 
     //AppCompat
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    private static final int GEOFENCE_RADIUS_IN_METERS = 200;
+    private static final int GEOFENCE_RADIUS_IN_METERS = 840;
     private static final long GEOFENCE_EXPIRATION_IN_MILLISECONDS = Geofence.NEVER_EXPIRE;
 
     private ArrayList<Geofence> mGeofenceList;
@@ -157,12 +157,12 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
                     Location locationA = new Location("Current Location");
 
                     //Real Time Location
-                    //locationA.setLatitude(latlng.latitude);
-                    //locationA.setLongitude(latlng.longitude);
+                    locationA.setLatitude(latlng.latitude);
+                    locationA.setLongitude(latlng.longitude);
 
                     //Inside Dkit
-                    locationA.setLatitude(53.98488);
-                    locationA.setLongitude(-6.3961837);
+                    //locationA.setLatitude(53.98488);
+                    //locationA.setLongitude(-6.3961837);
 
                     //Outside Dkit
                     //locationA.setLatitude(55.98488);
