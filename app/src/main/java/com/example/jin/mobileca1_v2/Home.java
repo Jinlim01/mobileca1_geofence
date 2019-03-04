@@ -147,7 +147,6 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
             locationManager.removeUpdates(this);
             generateGeofence();
             addGeofence();
-            Toast.makeText(Home.this, "Error", Toast.LENGTH_SHORT).show();
 //
             new Handler().postDelayed(new Runnable() {
 //
@@ -181,10 +180,12 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
                         if(distance[0] > GEOFENCE_RADIUS_IN_METERS){
                             floatingButton_one.setEnabled(false);
                             floatingButton_two.setEnabled(false);
+                            Log.d("Tage 1", "disable" );
                         }else{
                             floatingButton_one.setEnabled(true);
                             floatingButton_two.setEnabled(true);
                             currentLocation=centerName.get(i);
+                            Log.d("Tage 1", "enable" );
                             i = center.size() + 10;
                         }
                     }
