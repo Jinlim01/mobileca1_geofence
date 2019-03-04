@@ -127,7 +127,6 @@ private  Handler handler;
                 Bundle reply = msg.getData();
                 LatLng geopoint = new LatLng((double)reply.get("lat"),(double)reply.get("long"));
                 boolean exit = (boolean)reply.get("exit");
-
                 String s= ""+exit;
                 Log.i("exit123", s);
                 //triggered latlng
@@ -255,10 +254,6 @@ if(exit){
 //    locationA.setLatitude(54.0050);
 //    locationA.setLongitude(-6.3933);
 //            latlng = new LatLng(54.0050, -6.3933);
-            Log.i("exit123 ", "onLocationChanged");
-
-            Log.i("exit123 ", latlng.latitude+"");
-            Log.i("exit123 ", latlng.longitude+"");
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlng, 15);
 
             googleMap.animateCamera(cameraUpdate);
@@ -328,7 +323,6 @@ if(exit){
 
 
     private void addGeofence() {
-//        if (ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
@@ -336,8 +330,7 @@ if(exit){
                             drawCircle();
                         }
                     });
-        }
-//    }
+    }
 
     private void generateGeofence(){
         for(Map.Entry<String,LatLng> entry: sitenames.entrySet()){

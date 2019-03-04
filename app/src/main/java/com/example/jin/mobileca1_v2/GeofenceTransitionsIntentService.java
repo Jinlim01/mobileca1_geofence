@@ -62,13 +62,12 @@ public class GeofenceTransitionsIntentService extends IntentService {
             b.putDouble("long",geoPoint.getLongitude());
 
             if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-
-                Log.i("exit123", "onHandleIntent: HELLO");
                 b.putBoolean("exit",false);
+                Log.i("exit123", "Hello");
 
             } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
-                Log.i("exit123", "onHandleIntent: BYE");
                 b.putBoolean("exit",true);
+                Log.i("exit123", "bye");
 
             }
             try {
