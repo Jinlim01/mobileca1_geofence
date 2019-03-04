@@ -147,6 +147,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
             locationManager.removeUpdates(this);
             generateGeofence();
             addGeofence();
+            Toast.makeText(Home.this, "Error", Toast.LENGTH_SHORT).show();
 //
             new Handler().postDelayed(new Runnable() {
 //
