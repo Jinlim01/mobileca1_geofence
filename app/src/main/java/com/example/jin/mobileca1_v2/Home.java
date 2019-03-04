@@ -4,15 +4,19 @@ import android.Manifest;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Handler;
+import android.os.Message;
+import android.os.Messenger;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +24,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
@@ -56,7 +61,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
 
     //AppCompat
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    private static final int GEOFENCE_RADIUS_IN_METERS = 825;
+    private static final int GEOFENCE_RADIUS_IN_METERS = 200;
     private static final long GEOFENCE_EXPIRATION_IN_MILLISECONDS = Geofence.NEVER_EXPIRE;
 
     private ArrayList<Geofence> mGeofenceList;
@@ -83,6 +88,13 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
 
     private HashMap<String,LatLng> sitenames;
 
+    //location
+    private FusedLocationProviderClient mFusedLocationProviderClient;
+    private Location mLastKnownLocation;
+
+private  Handler handler;
+    FloatingActionButton floatingButton_one;
+    FloatingActionButton floatingButton_two;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,41 +103,106 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
         user = mAuth.getCurrentUser();
         db = FirebaseFirestore.getInstance();
         sitenames = new HashMap<>();
-//        sitenames.put("DundalkIT", new LatLng(53.9849,-6.3940));
         mGeofenceList = new ArrayList<>();
-        checkPermission();
-//        mClockInBtn = (Button) findViewById(R.id.btn_clockin);
-//        mClockOutBtn = (Button) findViewById(R.id.btn_clockout);
-//
-//        mClockInBtn.setOnClickListener(new View.OnClickListener(){
-//            public void onClick(View v) {
-//                addClockInToDatabase();
-//            }
-//        });
-//
-//        mClockOutBtn.setOnClickListener(new View.OnClickListener(){
-//            public void onClick(View v) {
-//                addClockOutToDatabase();
-//            }
-//        });
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+        floatingButton_one = findViewById(R.id.clock_in);
+        floatingButton_two = findViewById(R.id.clock_out);
+        floatingButton_one.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                addClockInToDatabase();
+            }
+        });
+        floatingButton_two.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                addClockOutToDatabase();
+            }
+        });
+        initMap();
+        handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                Bundle reply = msg.getData();
+                LatLng geopoint = new LatLng((double)reply.get("lat"),(double)reply.get("long"));
+                boolean exit = (boolean)reply.get("exit");
+
+                String s= ""+exit;
+                Log.i("exit123", s);
+                //triggered latlng
+                Log.i("exit123 ", geopoint.latitude+"");
+                Log.i("exit123 ", geopoint.longitude+"");
+                getCurrentLocation();
+
+                updateUI(exit);
+            }
+        };
+
+
 //
     }
+private void updateUI(boolean exit){
 
+if(exit){
+    floatingButton_one.setEnabled(false);
+            floatingButton_two.setEnabled(false);
+}else{
+    floatingButton_one.setEnabled(true);
+    floatingButton_two.setEnabled(true);
+}
+//    float[] distance = new float[2];
+//
+//    Location locationA = new Location("Current Location");
+//
+//    //Real Time Location
+//    locationA.setLatitude(latlng.latitude);
+//    locationA.setLongitude(latlng.longitude);
+//
+//    //Inside Dkit
+//    //locationA.setLatitude(53.98988);
+//    //locationA.setLongitude(-6.3941);
+//
+//    //Outside Dkit
+////    locationA.setLatitude(54.0050);
+////    locationA.setLongitude(-6.3933);
+//
+//    for(int i = 0 ; i < center.size();i++){
+//        Location locationB = new Location("point B");
+//        locationB.setLatitude(center.get(i).latitude);
+//        locationB.setLongitude(center.get(i).longitude);
+//
+//        Location.distanceBetween(locationA.getLatitude(),locationA.getLongitude(),locationB.getLatitude(),locationB.getLongitude(),distance);
+//
+//        if(distance[0] > GEOFENCE_RADIUS_IN_METERS){
+//            floatingButton_one.setEnabled(false);
+//            floatingButton_two.setEnabled(false);
+//            Log.i("Tage 1", "disable" );
+//        }else{
+//            floatingButton_one.setEnabled(true);
+//            floatingButton_two.setEnabled(true);
+//            currentLocation=centerName.get(i);
+//            Log.i("Tage 1", "enable" );
+//            i = center.size() + 10;
+//        }
+//    }
+
+}
     @Override
-    public void onMapReady(GoogleMap googleMap) {
-        if (googleMap != null) {
-            this.googleMap = googleMap;
+    public void onMapReady(GoogleMap map) {
+            googleMap = map;
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 googleMap.setMyLocationEnabled(true);
             }
-            setupGeofence();
-        }
+        checkPermission();
+
+        setupGeofence();
     }
     private void checkPermission() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
         } else {
-            initMap();
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
     }
     private void initMap() {
@@ -138,90 +215,120 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME, MIN_DISTANCE, (LocationListener) this); //You can also use LocationManager.GPS_PROVIDER and LocationManager.PASSIVE_PROVIDER
         }
     }
-    @Override
-    public void onLocationChanged(final Location location) {
-        if (location != null & googleMap != null) {
-            latlng = new LatLng(location.getLatitude(), location.getLongitude());
-            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlng, 15);
-            googleMap.animateCamera(cameraUpdate);
-            locationManager.removeUpdates(this);
-            generateGeofence();
-            addGeofence();
-//
-            new Handler().postDelayed(new Runnable() {
-//
+
+    private void getCurrentLocation() {
+
+        try {
+            Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+
+            locationResult.addOnSuccessListener(this, new OnSuccessListener<Location>() {
                 @Override
-               public void run() {
-                    FloatingActionButton floatingButton_one = findViewById(R.id.clock_in);
-                    FloatingActionButton floatingButton_two = findViewById(R.id.clock_out);
-                    float[] distance = new float[2];
-
-                    Location locationA = new Location("Current Location");
-
-                    //Real Time Location
-                    locationA.setLatitude(latlng.latitude);
-                    locationA.setLongitude(latlng.longitude);
-
-                    //Inside Dkit
-                    //locationA.setLatitude(53.98988);
-                    //locationA.setLongitude(-6.3941);
-
-                    //Outside Dkit
-                    //locationA.setLatitude(55.98488);
-                    //locationA.setLongitude(-6.3961837);
-
-                    for(int i = 0 ; i < center.size();i++){
-                        Location locationB = new Location("point B");
-                        locationB.setLatitude(center.get(i).latitude);
-                        locationB.setLongitude(center.get(i).longitude);
-
-                        Location.distanceBetween(locationA.getLatitude(),locationA.getLongitude(),locationB.getLatitude(),locationB.getLongitude(),distance);
-
-                        if(distance[0] > GEOFENCE_RADIUS_IN_METERS){
-                            floatingButton_one.setEnabled(false);
-                            floatingButton_two.setEnabled(false);
-                            Log.d("Tage 1", "disable" );
-                        }else{
-                            floatingButton_one.setEnabled(true);
-                            floatingButton_two.setEnabled(true);
-                            currentLocation=centerName.get(i);
-                            Log.d("Tage 1", "enable" );
-                            i = center.size() + 10;
+                public void onSuccess(Location location) {
+                    mLastKnownLocation = location;
+                    if (mLastKnownLocation != null) {
+                        if(latlng.latitude!=mLastKnownLocation.getLatitude()){
+                        latlng = new LatLng(mLastKnownLocation.getLatitude(),mLastKnownLocation.getLongitude());
+                            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                                    new LatLng(mLastKnownLocation.getLatitude(),
+                                            mLastKnownLocation.getLongitude()), 15));
                         }
                     }
 
-                    floatingButton_one.setOnClickListener(new View.OnClickListener(){
-                        @Override
-                        public void onClick(View v) {
-                            addClockInToDatabase();
-                        }
-                    });
-                    floatingButton_two.setOnClickListener(new View.OnClickListener(){
-                        @Override
-                        public void onClick(View v) {
-                            addClockOutToDatabase();
-                        }
-                    });
-                }}, 2000);
+                }
+            }).addOnFailureListener(this, new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+
+                }
+            });
+
+        } catch (SecurityException e) {
+            Log.e("Exception: %s", e.getMessage());
+        }
+    }
+    @Override
+    public void onLocationChanged(final Location location) {
+
+        if (location != null & googleMap != null) {
+
+            latlng = new LatLng(location.getLatitude(), location.getLongitude());
+//    locationA.setLatitude(54.0050);
+//    locationA.setLongitude(-6.3933);
+//            latlng = new LatLng(54.0050, -6.3933);
+            Log.i("exit123 ", "onLocationChanged");
+
+            Log.i("exit123 ", latlng.latitude+"");
+            Log.i("exit123 ", latlng.longitude+"");
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlng, 15);
+
+            googleMap.animateCamera(cameraUpdate);
+
+            locationManager.removeUpdates(this);
+            if(sitenames.size()!=0){
+                addGeofence();
+//                updateUI();
+            }
+
+//            new Handler().postDelayed(new Runnable() {
+////
+//                @Override
+//               public void run() {
+//                    FloatingActionButton floatingButton_one = findViewById(R.id.clock_in);
+//                    FloatingActionButton floatingButton_two = findViewById(R.id.clock_out);
+//                    float[] distance = new float[2];
+//
+//                    Location locationA = new Location("Current Location");
+//
+//                    //Real Time Location
+//                    locationA.setLatitude(latlng.latitude);
+//                    locationA.setLongitude(latlng.longitude);
+//
+//                    //Inside Dkit
+//                    //locationA.setLatitude(53.98988);
+//                    //locationA.setLongitude(-6.3941);
+//
+//                    //Outside Dkit
+//                    //locationA.setLatitude(55.98488);
+//                    //locationA.setLongitude(-6.3961837);
+//
+//                    for(int i = 0 ; i < center.size();i++){
+//                        Location locationB = new Location("point B");
+//                        locationB.setLatitude(center.get(i).latitude);
+//                        locationB.setLongitude(center.get(i).longitude);
+//
+//                        Location.distanceBetween(locationA.getLatitude(),locationA.getLongitude(),locationB.getLatitude(),locationB.getLongitude(),distance);
+//
+//                        if(distance[0] > GEOFENCE_RADIUS_IN_METERS){
+//                            floatingButton_one.setEnabled(false);
+//                            floatingButton_two.setEnabled(false);
+//                            Log.i("Tage 1", "disable" );
+//                        }else{
+//                            floatingButton_one.setEnabled(true);
+//                            floatingButton_two.setEnabled(true);
+//                            currentLocation=centerName.get(i);
+//                            Log.i("Tage 1", "enable" );
+//                            i = center.size() + 10;
+//                        }
+//                    }
+//
+//                }}, 2000);
         }
     }
 
     private void setupGeofence() {
-
         initGeofencingClient();
     }
 
     private void initGeofencingClient() {
         getLocationFromDatabase();
         mGeofencePendingIntent = getGeofencePendingIntent();
-        generateGeofence();
+//        generateGeofence();
         mGeofencingClient = LocationServices.getGeofencingClient(this);
     }
 
 
     private void addGeofence() {
-
-        if (ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+//        if (ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mGeofencingClient.addGeofences(getGeofencingRequest(), getGeofencePendingIntent())
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
@@ -230,7 +337,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
                         }
                     });
         }
-    }
+//    }
 
     private void generateGeofence(){
         for(Map.Entry<String,LatLng> entry: sitenames.entrySet()){
@@ -246,16 +353,6 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
                     .build());
 
         }
-//        mGeofenceList.add(new Geofence.Builder()
-//                .setRequestId("geofence")
-//                .setCircularRegion(
-//                        53.9849,
-//                        -6.3940,
-//                        GEOFENCE_RADIUS_IN_METERS
-//                )
-//                .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-//                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
-//                .build());
     }
 
     private GeofencingRequest getGeofencingRequest() {
@@ -270,6 +367,8 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
             return mGeofencePendingIntent;
         }
         Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
+        intent.putExtra("messenger", new Messenger(handler));
+
         return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
     }
@@ -327,13 +426,14 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
         clockIn.put("long",latlng.longitude);
         clockIn.put("Site Name",currentLocation);
         clockIn.put("workerId",user.getUid());
+        Log.i("exit123", "DocumentSnapshot added with ID: 11");
 
         db.collection("clock")
                 .add(clockIn)
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
-                        Log.d("Tage 1", "DocumentSnapshot added with ID: " + documentReference.getId());
+                        Log.i("Tage 1", "DocumentSnapshot added with ID: " + documentReference.getId());
                         Toast.makeText(Home.this, "Clock in success at " + currentLocation,
                                 Toast.LENGTH_SHORT).show();
                     }
@@ -341,7 +441,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.w("Tag 2", "Error adding document", e);
+                        Log.i("Tag 2", "Error adding document", e);
                         Toast.makeText(Home.this, "Clock in failed.",
                                 Toast.LENGTH_SHORT).show();
                     }
@@ -356,7 +456,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
         clockOut.put("long",latlng.longitude);
         clockOut.put("Site Name",currentLocation);
         clockOut.put("workerId",user.getUid());
-
+        Log.i("exit123", "DocumentSnapshot added with ID: out");
         db.collection("clock")
                 .add(clockOut)
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
@@ -391,18 +491,22 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
     }
 
     public void getLocationFromDatabase(){
+
         db.collection("sitename").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
+
                 if (task.isSuccessful()){
                     for(QueryDocumentSnapshot document:task.getResult()){
                         Log.d("Databbas123", document.getId()+"=> " + document.getData());
                         GeoPoint geoPoint = (GeoPoint)document.get("location");
                         sitenames.put((String)document.get("siteName"),new LatLng(geoPoint.getLatitude(),geoPoint.getLongitude()));
                     }
+                    generateGeofence();
+                    addGeofence();
 
                 }else{
-                    Log.d("Error","Error");
+                    Log.d("Error123","Error");
                     Toast.makeText(Home.this, "Error", Toast.LENGTH_SHORT).show();
 
                 }

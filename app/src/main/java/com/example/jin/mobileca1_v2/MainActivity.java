@@ -34,15 +34,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Intent intent = new Intent(MainActivity.this, Home.class);
-        startActivity(intent);
+//        Intent intent = new Intent(MainActivity.this, Home.class);
+//        startActivity(intent);
         mLoginBtn = (Button) findViewById(R.id.btn_login);
         mRegisterDirBtn = (Button) findViewById(R.id.login_register);
         mLoginEmailEditText = (EditText) findViewById(R.id.loginEmail);
         mPasswordEditText = (EditText) findViewById(R.id.et_login_password);
         mLoginBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                Log.d("Test 1","Login btn");
+                Log.i("Test 1","Login btn");
                 login();
             }
         });
@@ -60,7 +60,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void login(){
-        mAuth.signInWithEmailAndPassword(mLoginEmailEditText.getText().toString(), mPasswordEditText.getText().toString())
+        mAuth.signInWithEmailAndPassword("test3@gmail.com" ,"123456")
+//        mAuth.signInWithEmailAndPassword(mLoginEmailEditText.getText().toString(), mPasswordEditText.getText().toString())
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
