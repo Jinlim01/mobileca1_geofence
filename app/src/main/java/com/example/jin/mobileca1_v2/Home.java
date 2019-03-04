@@ -56,7 +56,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
 
     //AppCompat
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    private static final int GEOFENCE_RADIUS_IN_METERS = 840;
+    private static final int GEOFENCE_RADIUS_IN_METERS = 825;
     private static final long GEOFENCE_EXPIRATION_IN_MILLISECONDS = Geofence.NEVER_EXPIRE;
 
     private ArrayList<Geofence> mGeofenceList;
@@ -77,6 +77,8 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
     private FirebaseUser user;
     private double radius;
     ArrayList<LatLng> center = new ArrayList<>();
+    ArrayList<String> centerName = new ArrayList<>();
+
     private String currentLocation;
 
     private HashMap<String,LatLng> sitenames;
@@ -137,7 +139,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
         }
     }
     @Override
-    public void onLocationChanged(Location location) {
+    public void onLocationChanged(final Location location) {
         if (location != null & googleMap != null) {
             latlng = new LatLng(location.getLatitude(), location.getLongitude());
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latlng, 15);
@@ -161,8 +163,8 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
                     locationA.setLongitude(latlng.longitude);
 
                     //Inside Dkit
-                    //locationA.setLatitude(53.98488);
-                    //locationA.setLongitude(-6.3961837);
+                    //locationA.setLatitude(53.98988);
+                    //locationA.setLongitude(-6.3941);
 
                     //Outside Dkit
                     //locationA.setLatitude(55.98488);
@@ -175,18 +177,14 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
 
                         Location.distanceBetween(locationA.getLatitude(),locationA.getLongitude(),locationB.getLatitude(),locationB.getLongitude(),distance);
 
-                        if(distance[0] > radius){
+                        if(distance[0] > GEOFENCE_RADIUS_IN_METERS){
                             floatingButton_one.setEnabled(false);
                             floatingButton_two.setEnabled(false);
                         }else{
-                            if(i == 0){
-                                currentLocation = "Dundalk";
-                            }else if(i == 1) {
-                                currentLocation = "Cork";
-                            }else if(i == 2){
-                                currentLocation = "Dublin";
-                            }
-                            i = center.size() + 1;
+                            floatingButton_one.setEnabled(true);
+                            floatingButton_two.setEnabled(true);
+                            currentLocation=centerName.get(i);
+                            i = center.size() + 10;
                         }
                     }
 
@@ -202,7 +200,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
                             addClockOutToDatabase();
                         }
                     });
-                }}, 1000);
+                }}, 2000);
         }
     }
 
@@ -292,6 +290,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
             CircleOptions circleOptions = new CircleOptions();
             circleOptions.center(new LatLng(entry.getValue().latitude,entry.getValue().longitude));
             center.add(new LatLng(entry.getValue().latitude,entry.getValue().longitude));
+            centerName.add(entry.getKey());
             circleOptions.radius(GEOFENCE_RADIUS_IN_METERS);
             circleOptions.fillColor(0x50666b75);
             circleOptions.strokeColor(0x50666b75);
