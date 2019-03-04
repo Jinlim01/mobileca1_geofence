@@ -17,6 +17,7 @@ import android.os.RemoteException;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,6 +27,7 @@ import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
 import com.google.firebase.firestore.GeoPoint;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -56,10 +58,17 @@ public class GeofenceTransitionsIntentService extends IntentService {
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL || geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ||
                 geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
+            ArrayList triggeringGeofencesIdsList = new ArrayList();
+            for (Geofence geofence : triggeringGeofences) {
+                triggeringGeofencesIdsList.add(geofence.getRequestId());
+            }
+            String triggeringGeofencesIdsString = TextUtils.join(", ",  triggeringGeofencesIdsList);
+
             Location location = geofencingEvent.getTriggeringLocation();
             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
             b.putDouble("lat",geoPoint.getLatitude());
             b.putDouble("long",geoPoint.getLongitude());
+            b.putString("sitename",triggeringGeofencesIdsString);
 
             if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
                 b.putBoolean("exit",false);

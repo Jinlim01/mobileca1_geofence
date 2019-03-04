@@ -127,8 +127,12 @@ private  Handler handler;
                 Bundle reply = msg.getData();
                 LatLng geopoint = new LatLng((double)reply.get("lat"),(double)reply.get("long"));
                 boolean exit = (boolean)reply.get("exit");
+                currentLocation  = (String)reply.get("sitename");
+
                 String s= ""+exit;
                 Log.i("exit123", s);
+                Log.i("exit123", currentLocation);
+
                 //triggered latlng
                 Log.i("exit123 ", geopoint.latitude+"");
                 Log.i("exit123 ", geopoint.longitude+"");
