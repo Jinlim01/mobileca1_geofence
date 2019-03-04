@@ -77,6 +77,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
     private FirebaseUser user;
     private double radius;
     ArrayList<LatLng> center = new ArrayList<>();
+    private String currentLocation;
 
     private HashMap<String,LatLng> sitenames;
 
@@ -145,19 +146,25 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
             generateGeofence();
             addGeofence();
 //
-//            new Handler().postDelayed(new Runnable() {
+            new Handler().postDelayed(new Runnable() {
 //
-//                @Override
-//                public void run() {
+                @Override
+               public void run() {
                     FloatingActionButton floatingButton_one = findViewById(R.id.clock_in);
                     FloatingActionButton floatingButton_two = findViewById(R.id.clock_out);
                     float[] distance = new float[2];
 
                     Location locationA = new Location("Current Location");
-                    locationA.setLatitude(latlng.latitude);
-                    locationA.setLongitude(latlng.longitude);
-                    //locationA.setLatitude(53.98488);
-                    //locationA.setLongitude(-6.3961837);
+
+                    //Real Time Location
+                    //locationA.setLatitude(latlng.latitude);
+                    //locationA.setLongitude(latlng.longitude);
+
+                    //Inside Dkit
+                    locationA.setLatitude(53.98488);
+                    locationA.setLongitude(-6.3961837);
+
+                    //Outside Dkit
                     //locationA.setLatitude(55.98488);
                     //locationA.setLongitude(-6.3961837);
 
@@ -172,6 +179,13 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
                             floatingButton_one.setEnabled(false);
                             floatingButton_two.setEnabled(false);
                         }else{
+                            if(i == 0){
+                                currentLocation = "Dundalk";
+                            }else if(i == 1) {
+                                currentLocation = "Cork";
+                            }else if(i == 2){
+                                currentLocation = "Dublin";
+                            }
                             i = center.size() + 1;
                         }
                     }
@@ -188,7 +202,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
                             addClockOutToDatabase();
                         }
                     });
-//                }}, 2000);
+                }}, 1000);
         }
     }
 
@@ -308,9 +322,9 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
         Map<String, Object> clockIn= new HashMap<>();
         clockIn.put("checkInTime",getCurrentTimeUsingDate());
         clockIn.put("checkOutTime","");
-        clockIn.put("lat",20.0);
-        clockIn.put("long",80.0);
-        clockIn.put("Site Name","Site 1");
+        clockIn.put("lat",latlng.latitude);
+        clockIn.put("long",latlng.longitude);
+        clockIn.put("Site Name",currentLocation);
         clockIn.put("workerId",user.getUid());
 
         db.collection("clock")
@@ -319,7 +333,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
                         Log.d("Tage 1", "DocumentSnapshot added with ID: " + documentReference.getId());
-                        Toast.makeText(Home.this, "Clock in success.",
+                        Toast.makeText(Home.this, "Clock in success at " + currentLocation,
                                 Toast.LENGTH_SHORT).show();
                     }
                 })
@@ -337,9 +351,9 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
         Map<String, Object> clockOut = new HashMap<>();
         clockOut.put("checkInTime","");
         clockOut.put("checkOutTime",getCurrentTimeUsingDate());
-        clockOut.put("lat",20.0);
-        clockOut.put("long",80.0);
-        clockOut.put("Site Name","Site 1");
+        clockOut.put("lat",latlng.latitude);
+        clockOut.put("long",latlng.longitude);
+        clockOut.put("Site Name",currentLocation);
         clockOut.put("workerId",user.getUid());
 
         db.collection("clock")
@@ -348,7 +362,7 @@ public class Home extends AppCompatActivity implements OnMapReadyCallback, Locat
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
                         Log.d("Tag 1", "DocumentSnapshot added with ID: " + documentReference.getId());
-                        Toast.makeText(Home.this, "Clock out success.",
+                        Toast.makeText(Home.this, "Clock out success at " + currentLocation,
                                 Toast.LENGTH_SHORT).show();
                     }
                 })
