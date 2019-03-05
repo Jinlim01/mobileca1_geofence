@@ -60,8 +60,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void login(){
-        mAuth.signInWithEmailAndPassword("test3@gmail.com" ,"123456")
-//        mAuth.signInWithEmailAndPassword(mLoginEmailEditText.getText().toString(), mPasswordEditText.getText().toString())
+//        mAuth.signInWithEmailAndPassword("test3@gmail.com" ,"123456")
+        mAuth.signInWithEmailAndPassword(mLoginEmailEditText.getText().toString(), mPasswordEditText.getText().toString())
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
