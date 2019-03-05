@@ -47,6 +47,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -56,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import com.google.firebase.firestore.CollectionReference;
 
 public class Home extends AppCompatActivity implements OnMapReadyCallback, LocationListener{
 
@@ -111,13 +113,25 @@ private  Handler handler;
         floatingButton_one.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                addClockInToDatabase();
+                if(!clockIn) {
+                    addClockInToDatabase();
+                    clockIn = true;
+                }else{
+                    Toast.makeText(Home.this, "Already Clocked in",
+                            Toast.LENGTH_LONG).show();
+                }
             }
         });
         floatingButton_two.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                addClockOutToDatabase();
+                if(clockIn) {
+                    addClockOutToDatabase();
+                    clockIn = false;
+                }else{
+                    Toast.makeText(Home.this, "Already Clocked out",
+                            Toast.LENGTH_LONG).show();
+                }
             }
         });
         initMap();
@@ -416,6 +430,9 @@ if(exit){
     }
 
     private void addClockInToDatabase(){
+        CollectionReference getDatabase = db.collection("clock");
+        Query query = getDatabase.whereEqualTo("workerId",user.getUid());
+
         Map<String, Object> clockIn= new HashMap<>();
         clockIn.put("checkInTime",getCurrentTimeUsingDate());
         clockIn.put("checkOutTime","");
