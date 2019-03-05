@@ -22,7 +22,7 @@
         <activity android:name=".RegisterActivity" />
         <activity android:name=".Home">
         </activity>
-        <service android:name="com.example.jin.mobileca1_v2.GeofenceTransitionsIntentService" />
+        <service android:name=".GeofenceTransitionsIntentService" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
