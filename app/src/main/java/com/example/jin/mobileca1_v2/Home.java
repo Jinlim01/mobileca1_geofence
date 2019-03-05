@@ -430,9 +430,6 @@ if(exit){
     }
 
     private void addClockInToDatabase(){
-        CollectionReference getDatabase = db.collection("clock");
-        Query query = getDatabase.whereEqualTo("workerId",user.getUid());
-
         Map<String, Object> clockIn= new HashMap<>();
         clockIn.put("checkInTime",getCurrentTimeUsingDate());
         clockIn.put("checkOutTime","");
