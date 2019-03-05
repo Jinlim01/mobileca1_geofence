@@ -109,31 +109,21 @@ private  Handler handler;
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         floatingButton_one = findViewById(R.id.clock_in);
-        floatingButton_two = findViewById(R.id.clock_out);
         floatingButton_one.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 if(!clockIn) {
                     addClockInToDatabase();
                     clockIn = true;
+                    floatingButton_one.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(),R.drawable.ic_remove_circle_black_24dp));
                 }else{
-                    Toast.makeText(Home.this, "Already Clocked in",
-                            Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-        floatingButton_two.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                if(clockIn) {
                     addClockOutToDatabase();
                     clockIn = false;
-                }else{
-                    Toast.makeText(Home.this, "Already Clocked out",
-                            Toast.LENGTH_LONG).show();
+                    floatingButton_one.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(),R.drawable.ic_work_black_24dp));
                 }
             }
         });
+
         initMap();
         handler = new Handler() {
             @Override
