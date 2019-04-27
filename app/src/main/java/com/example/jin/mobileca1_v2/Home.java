@@ -1,9 +1,12 @@
 package com.example.jin.mobileca1_v2;
 
+import com.example.jin.mobileca1_v2.LocalBoundService.localBinder;
 import android.Manifest;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -11,6 +14,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.support.annotation.NonNull;
@@ -60,6 +64,9 @@ import java.util.Map;
 import com.google.firebase.firestore.CollectionReference;
 
 public class Home extends AppCompatActivity implements OnMapReadyCallback, LocationListener{
+
+    LocalBoundService myService;
+    boolean bounded = false ;
 
     //AppCompat
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -131,7 +138,7 @@ private  Handler handler;
                 Bundle reply = msg.getData();
                 LatLng geopoint = new LatLng((double)reply.get("lat"),(double)reply.get("long"));
                 boolean exit = (boolean)reply.get("exit");
-                currentLocation  = (String)reply.get("sitename");
+                currentLocation  = (String)reply.get("siteName");
 
                 String s= ""+exit;
                 Log.i("exit123", s);
@@ -149,6 +156,38 @@ private  Handler handler;
 
 //
     }
+
+    @Override
+    protected void onStart(){
+        super.onStart();
+        // Bind to LocalService
+        Intent intent = new Intent(this, LocalBoundService.class);
+        bindService(intent,myConnection, BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+        if(bounded){
+            unbindService(myConnection);
+            bounded = false;
+        }
+    }
+
+    private ServiceConnection myConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            localBinder binder = (localBinder) service;
+            myService = binder.getService();
+            bounded = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            bounded = false;
+        }
+    };
+
 private void updateUI(boolean exit){
 
 if(exit){
@@ -434,9 +473,17 @@ if(exit){
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
-                        Log.i("Tage 1", "DocumentSnapshot added with ID: " + documentReference.getId());
-                        Toast.makeText(Home.this, "Clock in success at " + currentLocation,
-                                Toast.LENGTH_SHORT).show();
+                        if(bounded){
+                            String currentTime = myService.getTime();
+                            Log.i("Tage 1", "DocumentSnapshot added with ID: " + documentReference.getId());
+                            Toast.makeText(Home.this, "Clock in success at " + currentLocation + " at " + currentTime ,
+                                    Toast.LENGTH_SHORT).show();
+                        }else{
+                            Log.i("Tage 1", "DocumentSnapshot added with ID: " + documentReference.getId());
+                            Toast.makeText(Home.this, "Clock in success at " + currentLocation,
+                                    Toast.LENGTH_SHORT).show();
+                        }
+
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -463,9 +510,17 @@ if(exit){
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
-                        Log.d("Tag 1", "DocumentSnapshot added with ID: " + documentReference.getId());
-                        Toast.makeText(Home.this, "Clock out success at " + currentLocation,
-                                Toast.LENGTH_SHORT).show();
+                        if(bounded){
+                            String currentTime = myService.getTime();
+                            Log.d("Tag 1", "DocumentSnapshot added with ID: " + documentReference.getId());
+                            Toast.makeText(Home.this, "Clock out success at " + currentLocation + " at " + currentTime,
+                                    Toast.LENGTH_SHORT).show();
+                        }else{
+                            Log.d("Tag 1", "DocumentSnapshot added with ID: " + documentReference.getId());
+                            Toast.makeText(Home.this, "Clock out success at " + currentLocation,
+                                    Toast.LENGTH_SHORT).show();
+                        }
+
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
